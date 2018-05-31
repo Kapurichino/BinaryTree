@@ -31,37 +31,41 @@ typedef struct listNode
 	char name;
 	treePointer father;
 	treePointer mother;
-}Node;
+};
 
-treePointer node[25];
+treePointer node[26];
 
 treePointer top;
 
+char input[6];
+
 void setAlphabet()
 {
-	for (int x = 0; x < 25; x++)
+	for (int x = 0; x < 26; x++)
 	{
-		MALLOC(node[x], sizeof(Node));
+		MALLOC(node[x], sizeof(*node[x]));
+		node[x]->father = NULL;
+		node[x]->mother = NULL;
 		node[x]->name = (char)('a' + x);
 	}
 }
 
 void insert(char* input)
 {
-	int parent = 'a' - input[0];
-	int child = 'a' - input[4];
+	int parent = input[4] - 'a';
+	int child = input[0] - 'a';
 	
 	if (top == NULL)
 	{
 		top = node[child];
 	}
 
-	if (top->name == input[0])
+	if (top->name == input[4])
 	{
 		top = node[child];
 	}
 
-	if (input[3] == "F")
+	if (input[2] == 'F')
 	{
 		node[child]->father = node[parent];
 	}
@@ -88,27 +92,31 @@ void delete()
 
 void preorder(treePointer ptr)
 {
-	printf("%c", ptr->name);
-	preorder(ptr->father);
-	preorder(ptr->mother);
+	if (ptr)
+	{
+		printf("%c", ptr->name);
+		preorder(ptr->father);
+		preorder(ptr->mother);
+	}
 }
 
 void findTree(char* input)
 {
 	int start = (int)(input[0] - 'a');
 	int end = (int)(input[4] - 'a');
-	char* x = (char*)malloc(sizeof(char));
-	while ()
+	treePointer find = top;
+	char* x;
+	while (1)
 	{
-		printf("%3d", first->data);
-		first = first->link;
+		x = (char*)malloc(sizeof(char));
+		x += find->name;
+		printf("%s", x);
 	}
 };
 
 int main(void)
 {
 	int jump = 0;
-	char input[6];
 
 	//알파벳 집어넣기
 	setAlphabet();
@@ -118,16 +126,17 @@ int main(void)
 	{
 		printf(">>");
 		scanf(" %s", input);
-		if (input[3] == "F" || input[3] == "M")
+		if (input[2] == 'F' || input[2] == 'M')
 		{
 			insert(input);
 		}
-		else if (input[3] == "?")
+		else if (input[2] == '?')
 		{
 			findTree(input);
 		}
 		preorder(top);
-	} while (input[0] = '\0');
+		printf("\n");
+	} while (input[0] != '\0');
 
 	//메모리에서 해제.
 }
