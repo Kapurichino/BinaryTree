@@ -23,6 +23,7 @@ MALLOC을 매크로 선언.
 #include <time.h>
 
 #define MALLOC(x, y) (x = (treePointer)malloc(y))
+#define MAX_STACK_SIZE 27
 
 typedef struct listNode* treePointer;
 
@@ -33,11 +34,22 @@ typedef struct listNode
 	treePointer mother;
 };
 
-treePointer node[26];
+typedef struct
+{
+	char name;
+}element;
+
+element stack[MAX_STACK_SIZE];
+
+treePointer node[27];
 
 treePointer top;
 
 char input[6];
+
+char* relation;
+
+int stackTop = 0;
 
 void setAlphabet()
 {
@@ -62,6 +74,7 @@ void insert(char* input)
 
 	if (top->name == input[4])
 	{
+		
 		top = node[child];
 	}
 
@@ -100,18 +113,53 @@ void preorder(treePointer ptr)
 	}
 }
 
-void findTree(char* input)
+void findTree(char* input, treePointer ptr)
 {
-	int start = (int)(input[0] - 'a');
-	int end = (int)(input[4] - 'a');
-	treePointer find = top;
-	char* x;
-	while (1)
+	if (ptr)
 	{
-		x = (char*)malloc(sizeof(char));
-		x += find->name;
-		printf("%s", x);
+		relation = (char*)malloc(sizeof(char));
+		if (ptr->name == input[0])
+		{
+			relation += ptr->name;
+			printf("%s", relation);
+		}
+		else
+		{
+			relation += ptr->name; 
+		}
 	}
+	else
+	{
+		pop();
+	}
+};
+
+
+void stackFull()
+{
+	printf("Stack is full, cannot add element");
+	exit(EXIT_FAILURE);
+};
+
+element stackEmpty()
+{
+	element empty;
+	printf("The stack is empty\n");
+	return empty;
+};
+
+element pop()
+{
+	if (top == -1)
+		return stackEmpty();
+	return stack[stackTop--];
+};
+
+void push(element item)
+{
+	if (top >= MAX_STACK_SIZE - 1)
+		stackFull();
+	stack[++stackTop] = item;
 };
 
 int main(void)
@@ -132,7 +180,7 @@ int main(void)
 		}
 		else if (input[2] == '?')
 		{
-			findTree(input);
+			findTree(input, top);
 		}
 		preorder(top);
 		printf("\n");
