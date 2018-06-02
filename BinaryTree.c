@@ -5,16 +5,11 @@
 출력 : 매 입력마다 preorder를 통해 순서를 나타냄. 다만, w-?-k의 경우 w에서 k까지의 모든 관계를 출력.
 완료날짜 : 2018 | 05 | 31 | 18:14PM
 작성자 : 방성원 (Student ID : 20173239)
-
 --History--
-
 # 20180531 18:15PM
-
 대략적인 구조를 만듦.
 MALLOC을 매크로 선언.
-
-# 
-
+#
 */
 
 
@@ -34,22 +29,23 @@ typedef struct listNode
 	treePointer mother;
 };
 
-typedef struct
+typedef struct info
 {
+	int left;
+	int right;
 	char name;
-}element;
-
-element stack[MAX_STACK_SIZE];
+	char parent;
+}relation;
 
 treePointer node[27];
 
-treePointer top;
+treePointer path[27];
+
+treePointer root;
 
 char input[6];
 
-char* relation;
-
-int stackTop = 0;
+int top = 0;
 
 void setAlphabet()
 {
@@ -66,16 +62,16 @@ void insert(char* input)
 {
 	int parent = input[4] - 'a';
 	int child = input[0] - 'a';
-	
-	if (top == NULL)
+
+	if (root == NULL)
 	{
-		top = node[child];
+		root = node[child];
 	}
 
-	if (top->name == input[4])
+	if (root->name == input[4])
 	{
-		
-		top = node[child];
+
+		root = node[child];
 	}
 
 	if (input[2] == 'F')
@@ -91,17 +87,45 @@ void insert(char* input)
 /*
 void delete()
 {
-	if (trail)
-	{
-		trail->link = x->link;
-	}
-	else
-	{
-		*first = (*first)->link;
-	}
-	free(x);
+if (trail)
+{
+trail->link = x->link;
+}
+else
+{
+*first = (*first)->link;
+}
+free(x);
 };
 */
+
+
+void stackFull()
+{
+	printf("Stack is full, cannot add element");
+	exit(EXIT_FAILURE);
+};
+
+treePointer stackEmpty()
+{
+	treePointer empty;
+	printf("The stack is empty\n");
+	return empty;
+};
+
+treePointer pop()
+{
+	if (top == -1)
+		return stackEmpty();
+	return path[top--];
+};
+
+void push(treePointer item)
+{
+	if (top >= MAX_STACK_SIZE - 1)
+		stackFull();
+	path[++top] = item;
+};
 
 void preorder(treePointer ptr)
 {
@@ -113,58 +137,72 @@ void preorder(treePointer ptr)
 	}
 }
 
-void findTree(char* input, treePointer ptr)
+relation* stackReverse(relation* original)
 {
-	if (ptr)
+	relation* reverse = (relation*)malloc(sizeof(relation) * 27);
+
+	for (int x = 0; x < top; x++)
 	{
-		relation = (char*)malloc(sizeof(char));
-		if (ptr->name == input[0])
+		reverse[x] = original[(top - 1)- x];
+	}
+	return reverse;
+}
+
+relation* find(treePointer find, char* input)
+{
+	int count = 0;
+	int discover = 0;
+
+	relation* familly = (relation*)malloc(sizeof(relation) * 27);
+
+	while (find)
+	{
+		if (!discover)
 		{
-			relation += ptr->name;
-			printf("%s", relation);
+			if (find->name == input[4]) 
+			{
+				push(find);
+				familly[count++].name = find->name;
+				break;
+			}
+			if (find->father && familly[(count)].left != 1) // 갔던 곳이 아니고, father 노드가 있을 경우
+			{
+				push(find);
+				familly[count].name = find->name;
+				familly[count].parent = 'F';
+				familly[count].left = 1;
+				familly[count++].right = 0;
+				find = find->father;
+			}
+			else if (find->mother && familly[(count)].right != 1) // 갔던 곳이 아니고, mother 노드가 있을 경우
+			{
+				push(find);
+				familly[count].name = find->name;
+				familly[count].parent = 'M';
+				familly[count].left = 0;
+				familly[count].right = 1;
+				find = find->mother;
+			}
+			else //부모 노드가 하나도 없음. 그런데 부모를 못 찾음.
+			{
+				find = pop(); // 다시 뒤로 돌아감.
+				--(count);
+			}
 		}
+		/*
 		else
-		{
-			relation += ptr->name; 
-		}
+			break;
+		*/
 	}
-	else
-	{
-		pop();
-	}
-};
-
-
-void stackFull()
-{
-	printf("Stack is full, cannot add element");
-	exit(EXIT_FAILURE);
-};
-
-element stackEmpty()
-{
-	element empty;
-	printf("The stack is empty\n");
-	return empty;
-};
-
-element pop()
-{
-	if (top == -1)
-		return stackEmpty();
-	return stack[stackTop--];
-};
-
-void push(element item)
-{
-	if (top >= MAX_STACK_SIZE - 1)
-		stackFull();
-	stack[++stackTop] = item;
+	return familly;
 };
 
 int main(void)
 {
-	int jump = 0;
+	relation* family;
+	relation* result;
+	treePointer get;
+	int count = 0;
 
 	//알파벳 집어넣기
 	setAlphabet();
@@ -177,12 +215,20 @@ int main(void)
 		if (input[2] == 'F' || input[2] == 'M')
 		{
 			insert(input);
+			preorder(root);
 		}
 		else if (input[2] == '?')
 		{
-			findTree(input, top);
+			family = find(root, input);
+			result = stackReverse(family);
+			for (int x = 0; x < top; x++)
+			{
+				printf("%c - ", result[x].name);
+				printf("%c - ", result[x].parent);
+				pop();
+			}
+			count = 0;
 		}
-		preorder(top);
 		printf("\n");
 	} while (input[0] != '\0');
 
